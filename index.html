@@ -247,7 +247,7 @@
                     weather: weatherData
                 });
 
-                generatePDF(results, newReportRef.id, selectedCategories.join(', '), reporterName, weatherData);
+                generatePDF(results, newReportRef.id, selectedCategories, reporterName, weatherData);
                 loadingIndicator.classList.add('hidden');
                 
             } catch (e) {
@@ -260,59 +260,74 @@
         async function generatePDF(results, reportId, categories, reporterName, weatherData) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
+            const margin = 15;
+            let yOffset = 20;
 
-            const title = "WorkSafeBC Safety Report";
-            const date = new Date().toLocaleDateString();
-            const time = new Date().toLocaleTimeString();
-
+            // Header Section
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(20);
-            doc.text(title, 10, 20);
-
+            doc.setFontSize(18);
+            doc.text("WorkSafeBC Safety Report", margin, yOffset);
+            yOffset += 10;
+            
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(12);
-            doc.text(`Report ID: ${reportId}`, 10, 30);
-            doc.text(`Reporter: ${reporterName}`, 10, 36);
-            doc.text(`Date: ${date} ${time}`, 10, 42);
-            doc.text(`Categories: ${categories}`, 10, 48);
-
-            let yOffset = 60;
-            const lineHeight = 7;
+            doc.setFontSize(10);
+            doc.text(`Report ID: ${reportId}`, margin, yOffset);
+            yOffset += 5;
+            doc.text(`Reporter: ${reporterName}`, margin, yOffset);
+            yOffset += 5;
+            doc.text(`Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin, yOffset);
+            yOffset += 5;
+            doc.text(`Categories: ${categories.join(', ')}`, margin, yOffset);
+            yOffset += 10;
 
             if (weatherData) {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.text("Weather Conditions", margin, yOffset);
+                yOffset += 7;
+                doc.setFont('helvetica', 'normal');
                 doc.setFontSize(10);
-                doc.text(`Weather conditions: ${weatherData.conditions}`, 10, yOffset);
-                yOffset += lineHeight;
+                doc.text(`Conditions: ${weatherData.conditions}`, margin, yOffset);
+                yOffset += 5;
                 if (weatherData.notes) {
-                    doc.text(`Notes: ${weatherData.notes}`, 10, yOffset);
-                    yOffset += lineHeight;
+                    doc.text(`Notes: ${weatherData.notes}`, margin, yOffset);
+                    yOffset += 5;
                 }
-                yOffset += lineHeight;
+                yOffset += 5;
             }
-            
+
+            // Checklist Section
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text("Checklist Items", margin, yOffset);
+            yOffset += 7;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+
             let currentCategory = '';
             results.forEach((item, index) => {
                 if (item.category !== currentCategory) {
+                    yOffset += 5;
                     doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(14);
-                    doc.text(`${item.category}`, 10, yOffset);
-                    yOffset += lineHeight * 2;
+                    doc.text(item.category, margin, yOffset);
+                    yOffset += 5;
                     currentCategory = item.category;
-                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'normal');
                 }
-                
-                doc.setFont('helvetica', 'bold');
-                doc.text(`${index + 1}. ${item.question}`, 10, yOffset);
-                yOffset += lineHeight;
 
-                doc.setFont('helvetica', 'normal');
-                doc.text(`Status: ${item.status}`, 15, yOffset);
-                yOffset += lineHeight;
+                const statusColor = item.status === 'Pass' ? '#065f46' : '#991b1b';
                 
-                doc.text(`Comments: ${item.comment || 'N/A'}`, 15, yOffset);
-                yOffset += lineHeight * 2;
+                doc.text(`- ${item.question}`, margin, yOffset);
+                yOffset += 5;
+                doc.textWithColor(`Status: ${item.status}`, margin + 5, yOffset, statusColor);
+                yOffset += 5;
                 
-                if (yOffset > 280) {
+                const comments = doc.splitTextToSize(`Comments: ${item.comment || 'N/A'}`, doc.internal.pageSize.getWidth() - margin * 2);
+                doc.text(comments, margin + 5, yOffset);
+                yOffset += comments.length * 5;
+                
+                if (yOffset > doc.internal.pageSize.getHeight() - 20) {
                     doc.addPage();
                     yOffset = 20;
                 }
