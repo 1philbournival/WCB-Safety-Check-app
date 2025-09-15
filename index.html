@@ -338,12 +338,10 @@
 
                 // Print the question, status, and comments
                 const questionText = `${index + 1}. ${item.question}`;
-                doc.setFont('helvetica', 'bold');
-                const splitQuestion = doc.splitTextToSize(questionText, doc.internal.pageSize.getWidth() - margin * 2 - 10);
-                doc.text(splitQuestion, margin + 5, yOffset);
-                yOffset += splitQuestion.length * lineHeight;
-                
                 doc.setFont('helvetica', 'normal');
+                doc.text(questionText, margin + 5, yOffset);
+                yOffset += lineHeight;
+                
                 const statusColor = item.status === 'Pass' ? '#065f46' : '#991b1b';
                 doc.setTextColor(statusColor);
                 doc.text(`Status: ${item.status}`, margin + 10, yOffset);
@@ -351,9 +349,8 @@
                 yOffset += lineHeight;
                 
                 const commentText = `Comments: ${item.comment || 'N/A'}`;
-                const splitComments = doc.splitTextToSize(commentText, doc.internal.pageSize.getWidth() - margin * 2 - 10);
-                doc.text(splitComments, margin + 10, yOffset);
-                yOffset += splitComments.length * lineHeight;
+                doc.text(commentText, margin + 10, yOffset);
+                yOffset += lineHeight;
                 
                 yOffset += lineHeight; // Add a bit of extra space between items
             });
