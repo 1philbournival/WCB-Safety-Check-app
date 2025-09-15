@@ -254,7 +254,7 @@
                     weather: weatherData
                 });
 
-                generatePDF(results, categories, reporterName, siteAddress, weatherData);
+                generatePDF(results, selectedCategories, reporterName, siteAddress, weatherData);
                 loadingIndicator.classList.add('hidden');
                 
             } catch (e) {
