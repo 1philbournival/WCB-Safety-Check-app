@@ -226,6 +226,7 @@
                 results.push({
                     id: id,
                     category: category,
+                    question: question,
                     status: status,
                     comment: comment
                 });
@@ -314,7 +315,7 @@
             yOffset += lineHeight;
 
             let currentCategory = '';
-            results.forEach((item, index) => {
+            results.forEach((item) => {
                 // Check if a new category header is needed
                 if (item.category !== currentCategory) {
                     yOffset += lineHeight;
@@ -336,9 +337,7 @@
                 }
 
                 // Print the question, status, and comments
-                const questionText = `${index + 1}. ${item.question}`;
-                doc.setFont('helvetica', 'normal');
-                doc.text(questionText, margin + 5, yOffset);
+                doc.text(`- ${item.question}`, margin + 5, yOffset);
                 yOffset += lineHeight;
                 
                 const statusColor = item.status === 'Pass' ? '#065f46' : '#991b1b';
