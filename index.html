@@ -314,17 +314,7 @@
             doc.text("Checklist Items", margin, yOffset);
             yOffset += lineHeight;
 
-            let currentCategory = '';
-            results.forEach((item) => {
-                // Check if a new category header is needed
-                if (item.category !== currentCategory) {
-                    yOffset += lineHeight;
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(item.category, margin, yOffset);
-                    yOffset += lineHeight;
-                    currentCategory = item.category;
-                    doc.setFont('helvetica', 'normal');
-                }
+
 
                 // Check if the page is full and add a new page if needed
                 if (yOffset > doc.internal.pageSize.getHeight() - 20) {
@@ -698,4 +688,5 @@
 
 </body>
 </html>
+
 
