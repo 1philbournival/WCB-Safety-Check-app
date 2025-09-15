@@ -8,10 +8,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script type="module">
-        // Import all necessary Firebase functions from their specific modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-        import { getFirestore, addDoc, collection, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+        // Use modern Firebase CDN imports for v10+
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js';
+        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+        import { getFirestore, addDoc, collection, onSnapshot, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
 
         // Firebase global variables
         let app;
@@ -231,7 +231,7 @@
                 return;
             }
             
-            weatherData = {
+            const weatherData = {
                 conditions: weatherSelect.value,
                 notes: weatherNotes.value.trim()
             };
@@ -247,16 +247,17 @@
                     weather: weatherData
                 });
 
-                generatePDF(results, newReportRef.id, selectedCategories.join(', '), reporterName);
+                generatePDF(results, newReportRef.id, selectedCategories.join(', '), reporterName, weatherData);
                 loadingIndicator.classList.add('hidden');
                 
             } catch (e) {
                 console.error("Error adding document or generating PDF: ", e);
                 loadingIndicator.classList.add('hidden');
+                alert("An error occurred. Please check the console for details.");
             }
         }
 
-        async function generatePDF(results, reportId, categories, reporterName) {
+        async function generatePDF(results, reportId, categories, reporterName, weatherData) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
@@ -383,9 +384,11 @@
         window.addEventListener('load', async () => {
             try {
                 // Initialize Firebase app and services
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
+                if (!app) {
+                  app = initializeApp(firebaseConfig);
+                  auth = getAuth(app);
+                  db = getFirestore(app);
+                }
 
                 // Set up the listener for auth state changes first
                 onAuthStateChanged(auth, (user) => {
@@ -414,10 +417,11 @@
                             recentReportsContainer.innerHTML = reportsHtml;
                         });
                     } else {
-                        console.log("No user is signed in.");
+                        console.log("No user is signed in. Signing in anonymously...");
                         userId = null;
                         signInAnonymously(auth).catch(e => {
                             console.error("Anonymous sign-in failed:", e);
+                            alert("Anonymous sign-in failed. Please check the console.");
                         });
                     }
                 });
