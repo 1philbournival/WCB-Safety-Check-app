@@ -17,14 +17,18 @@
         let db;
         let auth;
         let userId;
-
-        // Weather data
-        let weatherData = null;
         
-        // Firestore global variables from Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // This is your unique Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyABJua7dv8LYdRdZKucvs71p_jEtyC8lg4",
+          authDomain: "wcb-app-a1ab3.firebaseapp.com",
+          projectId: "wcb-app-a1ab3",
+          storageBucket: "wcb-app-a1ab3.firebasestorage.app",
+          messagingSenderId: "343441876733",
+          appId: "1:343441876733:web:c3e36e7fa56661363b8094",
+          measurementId: "G-BSKC7GX98V"
+        };
+        const appId = firebaseConfig.projectId;
 
         // Categorized checklist data based on the WorkSafeBC document
         const categorizedChecklists = {
@@ -376,17 +380,15 @@
 
         async function initializeFirebase() {
             try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+                // Initialize Firebase with your personal configuration
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                const auth = getAuth(app);
                 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // Sign in anonymously for simple internal use
+                await signInAnonymously(auth);
 
-                onAuthStateChanged(auth, async (user) => {
+                onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
                         console.log("Authentication successful. User ID:", userId);
