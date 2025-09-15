@@ -336,9 +336,8 @@
                     yOffset += lineHeight * 2;
                 }
 
-                // Print the question, status, and comments
-                doc.text(`- ${item.question}`, margin + 5, yOffset);
-                yOffset += lineHeight;
+                // Print the status, and comments
+
                 
                 const statusColor = item.status === 'Pass' ? '#065f46' : '#991b1b';
                 doc.setTextColor(statusColor);
@@ -699,3 +698,4 @@
 
 </body>
 </html>
+
