@@ -395,6 +395,10 @@
                     if (user) {
                         userId = user.uid;
                         console.log("Authentication successful. User ID:", userId);
+                        // Enable the submit button now that auth is ready
+                        submitButton.classList.remove('bg-gray-400');
+                        submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                        submitButton.disabled = false;
 
                         const reportsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/reports`);
                         onSnapshot(query(reportsCollectionRef), (querySnapshot) => {
@@ -598,7 +602,7 @@
         </div>
 
         <div class="flex items-center justify-center space-x-4 mt-6">
-            <button id="submitButton" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-blue-700 transition-colors">
+            <button id="submitButton" disabled class="w-full bg-gray-400 text-white font-bold py-3 px-4 rounded-lg shadow-md cursor-not-allowed">
                 Submit & Generate PDF
             </button>
         </div>
