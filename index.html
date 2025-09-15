@@ -316,6 +316,7 @@
 
             let currentCategory = '';
             results.forEach((item, index) => {
+                // Check if a new category header is needed
                 if (item.category !== currentCategory) {
                     yOffset += lineHeight;
                     doc.setFont('helvetica', 'bold');
@@ -325,33 +326,38 @@
                     doc.setFont('helvetica', 'normal');
                 }
 
-                const statusColor = item.status === 'Pass' ? '#065f46' : '#991b1b';
-                
-                // Print the question and number
+                // Check if the page is full and add a new page if needed
+                if (yOffset > doc.internal.pageSize.getHeight() - 20) {
+                    doc.addPage();
+                    yOffset = 20;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(12);
+                    doc.text("Checklist Items (cont.)", margin, yOffset);
+                    yOffset += lineHeight * 2;
+                }
+
+                // Print the question, status, and comments
                 const questionText = `${index + 1}. ${item.question}`;
+                doc.setFont('helvetica', 'bold');
                 const splitQuestion = doc.splitTextToSize(questionText, doc.internal.pageSize.getWidth() - margin * 2 - 10);
                 doc.text(splitQuestion, margin + 5, yOffset);
                 yOffset += splitQuestion.length * lineHeight;
                 
-                // Print the status
+                doc.setFont('helvetica', 'normal');
+                const statusColor = item.status === 'Pass' ? '#065f46' : '#991b1b';
                 doc.setTextColor(statusColor);
                 doc.text(`Status: ${item.status}`, margin + 10, yOffset);
                 doc.setTextColor('#000000'); // Reset color
                 yOffset += lineHeight;
                 
-                // Print the comments
                 const commentText = `Comments: ${item.comment || 'N/A'}`;
                 const splitComments = doc.splitTextToSize(commentText, doc.internal.pageSize.getWidth() - margin * 2 - 10);
                 doc.text(splitComments, margin + 10, yOffset);
                 yOffset += splitComments.length * lineHeight;
                 
                 yOffset += lineHeight; // Add a bit of extra space between items
-                
-                if (yOffset > doc.internal.pageSize.getHeight() - 20) {
-                    doc.addPage();
-                    yOffset = 20;
-                }
             });
+            
             const dateForFilename = new Date().toISOString().slice(0, 10);
             doc.save(`WorkSafeBC_Report_${dateForFilename}.pdf`);
             showModal('Checklist submitted and PDF generated successfully! Check your downloads folder.');
