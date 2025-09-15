@@ -254,7 +254,7 @@
                     weather: weatherData
                 });
 
-                generatePDF(results, newReportRef.id, selectedCategories, reporterName, siteAddress, weatherData);
+                generatePDF(results, categories, reporterName, siteAddress, weatherData);
                 loadingIndicator.classList.add('hidden');
                 
             } catch (e) {
@@ -264,7 +264,7 @@
             }
         }
 
-        async function generatePDF(results, reportId, categories, reporterName, siteAddress, weatherData) {
+        async function generatePDF(results, categories, reporterName, siteAddress, weatherData) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const margin = 15;
@@ -315,7 +315,7 @@
             yOffset += 7;
 
             let currentCategory = '';
-            results.forEach((item, index) => {
+            results.forEach(item => {
                 if (item.category !== currentCategory) {
                     yOffset += 5;
                     doc.setFont('helvetica', 'bold');
@@ -343,8 +343,8 @@
                     yOffset = 20;
                 }
             });
-
-            doc.save(`WorkSafeBC_Report_${reportId}.pdf`);
+            const dateForFilename = new Date().toISOString().slice(0, 10);
+            doc.save(`WorkSafeBC_Report_${dateForFilename}.pdf`);
             showModal('Checklist submitted and PDF generated successfully! Check your downloads folder.');
         }
 
@@ -422,7 +422,7 @@
                         userId = user.uid;
                         console.log("Authentication successful. User ID:", userId);
                         // Enable the submit button now that auth is ready
-                        submitButton.classList.remove('bg-gray-400');
+                        submitButton.classList.remove('bg-gray-400', 'cursor-not-allowed');
                         submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
                         submitButton.disabled = false;
 
