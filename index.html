@@ -211,8 +211,7 @@
 
             document.querySelectorAll('.check-item').forEach(itemElement => {
                 const id = itemElement.getAttribute('data-id');
-                const category = itemElement.getAttribute('data-category');
-                const question = itemElement.querySelector('p').textContent;
+                const questionText = itemElement.querySelector('p').textContent;
                 const comment = itemElement.querySelector('textarea').value;
                 const statusButton = itemElement.querySelector('.status-button.pass, .status-button.fail');
                 
@@ -225,8 +224,8 @@
 
                 results.push({
                     id: id,
-                    category: category,
-                    question: question,
+                    category: itemElement.getAttribute('data-category'),
+                    question: questionText,
                     status: status,
                     comment: comment
                 });
@@ -314,7 +313,17 @@
             doc.text("Checklist Items", margin, yOffset);
             yOffset += lineHeight;
 
-
+            let currentCategory = '';
+            results.forEach((item) => {
+                // Check if a new category header is needed
+                if (item.category !== currentCategory) {
+                    yOffset += lineHeight;
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(item.category, margin, yOffset);
+                    yOffset += lineHeight;
+                    currentCategory = item.category;
+                    doc.setFont('helvetica', 'normal');
+                }
 
                 // Check if the page is full and add a new page if needed
                 if (yOffset > doc.internal.pageSize.getHeight() - 20) {
@@ -326,7 +335,7 @@
                     yOffset += lineHeight * 2;
                 }
 
-                // Print the status, and comments
+                // Print the question, status, and comments
 
                 
                 const statusColor = item.status === 'Pass' ? '#065f46' : '#991b1b';
@@ -688,5 +697,3 @@
 
 </body>
 </html>
-
-
