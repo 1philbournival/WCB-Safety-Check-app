@@ -379,16 +379,15 @@
             }
         };
 
-        async function initializeFirebase() {
+        // Initialize Firebase when the page loads
+        window.addEventListener('load', async () => {
             try {
-                // Initialize Firebase with your personal configuration
+                // Initialize Firebase app and services
                 app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
                 auth = getAuth(app);
-                
-                // Sign in anonymously for simple internal use
-                await signInAnonymously(auth);
+                db = getFirestore(app);
 
+                // Set up the listener for auth state changes first
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
@@ -417,6 +416,9 @@
                     } else {
                         console.log("No user is signed in.");
                         userId = null;
+                        signInAnonymously(auth).catch(e => {
+                            console.error("Anonymous sign-in failed:", e);
+                        });
                     }
                 });
 
@@ -424,10 +426,36 @@
                 console.error("Error during Firebase initialization or sign-in:", e);
                 alert("Failed to initialize the app. Please check the console for errors.");
             }
-        }
-        
+            
+            // Initial UI setup (independent of Firebase)
+            const allCategories = Object.keys(categorizedChecklists);
+            let categoryCheckboxesHtml = '';
+            allCategories.forEach(category => {
+                categoryCheckboxesHtml += `
+                    <label class="inline-flex items-center mr-4 mb-2">
+                        <input type="checkbox" name="category" value="${category}" class="form-checkbox text-blue-600 rounded-md">
+                        <span class="ml-2 text-gray-700">${category}</span>
+                    </label>
+                `;
+            });
+            categoryCheckboxes.innerHTML = categoryCheckboxesHtml;
+            
+            categoryCheckboxes.addEventListener('change', () => {
+                const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(checkbox => checkbox.value);
+                renderChecklist(selectedCategories);
+            });
+
+            submitButton.addEventListener('click', submitChecklist);
+        });
+
         window.viewReport = async (reportId) => {
             try {
+                // Ensure auth is ready
+                if (!userId) {
+                    alert("Authentication not ready. Please wait a moment.");
+                    return;
+                }
+
                 const reportsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/reports`);
                 const q = query(reportsCollectionRef);
                 const querySnapshot = await new Promise(resolve => {
@@ -452,28 +480,6 @@
             }
         };
 
-        // Event listeners and initial setup
-        window.addEventListener('load', () => {
-            initializeFirebase();
-            const allCategories = Object.keys(categorizedChecklists);
-            let categoryCheckboxesHtml = '';
-            allCategories.forEach(category => {
-                categoryCheckboxesHtml += `
-                    <label class="inline-flex items-center mr-4 mb-2">
-                        <input type="checkbox" name="category" value="${category}" class="form-checkbox text-blue-600 rounded-md">
-                        <span class="ml-2 text-gray-700">${category}</span>
-                    </label>
-                `;
-            });
-            categoryCheckboxes.innerHTML = categoryCheckboxesHtml;
-            
-            categoryCheckboxes.addEventListener('change', () => {
-                const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(checkbox => checkbox.value);
-                renderChecklist(selectedCategories);
-            });
-
-            submitButton.addEventListener('click', submitChecklist);
-        });
     </script>
     <style>
         body {
