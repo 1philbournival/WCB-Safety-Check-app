@@ -113,6 +113,7 @@
         const recentReportsContainer = document.getElementById('recent-reports');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const reporterNameInput = document.getElementById('reporterName');
+        const siteAddressInput = document.getElementById('siteAddress');
         const weatherSelect = document.getElementById('weatherSelect');
         const weatherNotes = document.getElementById('weatherNotes');
 
@@ -193,6 +194,11 @@
                 alert('Please enter your name before submitting.');
                 return;
             }
+            const siteAddress = siteAddressInput.value.trim();
+            if (!siteAddress) {
+                alert('Please enter the site address before submitting.');
+                return;
+            }
 
             const selectedCategories = Array.from(document.querySelectorAll('input[name="category"]:checked')).map(checkbox => checkbox.value);
             if (selectedCategories.length === 0) {
@@ -244,10 +250,11 @@
                     categories: selectedCategories,
                     checklist: results,
                     reporterName: reporterName,
+                    siteAddress: siteAddress,
                     weather: weatherData
                 });
 
-                generatePDF(results, newReportRef.id, selectedCategories, reporterName, weatherData);
+                generatePDF(results, newReportRef.id, selectedCategories, reporterName, siteAddress, weatherData);
                 loadingIndicator.classList.add('hidden');
                 
             } catch (e) {
@@ -257,7 +264,7 @@
             }
         }
 
-        async function generatePDF(results, reportId, categories, reporterName, weatherData) {
+        async function generatePDF(results, reportId, categories, reporterName, siteAddress, weatherData) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const margin = 15;
@@ -265,21 +272,26 @@
 
             // Header Section
             doc.setFont('helvetica', 'bold');
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             doc.text("WorkSafeBC Safety Report", margin, yOffset);
-            yOffset += 10;
-            
+            yOffset += 12;
+
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(10);
-            doc.text(`Report ID: ${reportId}`, margin, yOffset);
-            yOffset += 5;
+            const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            doc.text(`Date: ${date}`, margin, yOffset);
+            doc.text(`Time: ${time}`, 100, yOffset);
+            yOffset += 6;
             doc.text(`Reporter: ${reporterName}`, margin, yOffset);
-            yOffset += 5;
-            doc.text(`Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, margin, yOffset);
-            yOffset += 5;
+            yOffset += 6;
+            doc.text(`Site: ${siteAddress}`, margin, yOffset);
+            yOffset += 6;
             doc.text(`Categories: ${categories.join(', ')}`, margin, yOffset);
             yOffset += 10;
-
+            
+            // Weather Section
             if (weatherData) {
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(12);
@@ -302,9 +314,6 @@
             doc.text("Checklist Items", margin, yOffset);
             yOffset += 7;
 
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-
             let currentCategory = '';
             results.forEach((item, index) => {
                 if (item.category !== currentCategory) {
@@ -320,7 +329,9 @@
                 
                 doc.text(`- ${item.question}`, margin, yOffset);
                 yOffset += 5;
-                doc.textWithColor(`Status: ${item.status}`, margin + 5, yOffset, statusColor);
+                doc.setTextColor(statusColor);
+                doc.text(`Status: ${item.status}`, margin + 5, yOffset);
+                doc.setTextColor('#000000'); // Reset color
                 yOffset += 5;
                 
                 const comments = doc.splitTextToSize(`Comments: ${item.comment || 'N/A'}`, doc.internal.pageSize.getWidth() - margin * 2);
@@ -346,8 +357,8 @@
             if (reportData) {
                 const date = reportData.timestamp ? new Date(reportData.timestamp.seconds * 1000).toLocaleString() : 'N/A';
                 contentHtml = `<h2 class="text-xl font-bold mb-4 text-gray-800">Report Details</h2>
-                               <p class="text-sm text-gray-600 mb-2"><strong>ID:</strong> ${reportData.id}</p>
                                <p class="text-sm text-gray-600 mb-2"><strong>Reporter:</strong> ${reportData.reporterName || 'N/A'}</p>
+                               <p class="text-sm text-gray-600 mb-2"><strong>Site Address:</strong> ${reportData.siteAddress || 'N/A'}</p>
                                <p class="text-sm text-gray-600 mb-4"><strong>Date:</strong> ${date}</p>
                                <p class="text-sm text-gray-600 mb-4"><strong>Categories:</strong> ${reportData.categories.join(', ')}</p>`;
                 
@@ -426,8 +437,8 @@
                                     const date = report.timestamp ? new Date(report.timestamp.seconds * 1000).toLocaleString() : 'N/A';
                                     reportsHtml += `
                                         <div class="bg-gray-100 p-4 rounded-lg mb-2 shadow-sm cursor-pointer hover:bg-gray-200 transition-colors" onclick="viewReport('${doc.id}')">
-                                            <p class="font-bold">Report ID: ${doc.id}</p>
-                                            <p class="text-sm text-gray-600">Categories: ${report.categories.join(', ')}</p>
+                                            <p class="font-bold">Reporter: ${report.reporterName || 'N/A'}</p>
+                                            <p class="text-sm text-gray-600">Site: ${report.siteAddress || 'N/A'}</p>
                                             <p class="text-sm text-gray-600">Date: ${date}</p>
                                         </div>
                                     `;
@@ -588,6 +599,10 @@
         <div class="mb-4">
             <label for="reporterName" class="block text-gray-700 font-medium mb-2">Reporter Name:</label>
             <input type="text" id="reporterName" class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Jane Doe">
+        </div>
+        <div class="mb-4">
+            <label for="siteAddress" class="block text-gray-700 font-medium mb-2">Construction Site Address:</label>
+            <input type="text" id="siteAddress" class="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 123 Main St, Anytown, BC">
         </div>
 
         <div id="weatherInfo" class="mb-6">
